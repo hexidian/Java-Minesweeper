@@ -176,10 +176,6 @@ class Board {
 
   }
 
-  public void print(){
-
-  }
-
   public boolean takeGuess(String raw_guess){
     String[] raw_guess_coords = raw_guess.split(",");
     int row = Integer.parseInt(raw_guess_coords[0]);
@@ -196,6 +192,11 @@ class Board {
 
     if (real_grid[row][col]){
       pub_grid[row][col] = "@";
+      for (int i = 0; i < rows; i++){
+        for (int j = 0; j < cols; j++){
+          if (real_grid[i][j]){pub_grid[i][j] = "@";}
+        }
+      }
       return true;
     } else {
       pub_grid[row][col] = Integer.toString(nearTiles(row,col));
