@@ -7,7 +7,8 @@ public class Main{
 
   int rows = 10;
   int cols = 10;
-  Board board = new Board(20, rows, cols);
+  int mines = 20;
+  Board board = new Board(mines, rows, cols);
 
   private Frame window;
   private Label header;
@@ -27,8 +28,8 @@ public class Main{
 
   private void prepareGUI(){
     window = new Frame("Minesweeper");
-    window.setSize(50*cols,50*rows+100);
-    window.setLayout(new GridLayout(rows+2,cols));
+    window.setSize(500,650);
+    window.setLayout(new GridLayout(rows+3,cols));
     window.addWindowListener(new WindowAdapter(){
       public void windowClosing(WindowEvent windowEvent){
         System.exit(0);
@@ -59,6 +60,27 @@ public class Main{
     options.add(mark_mode);
 
     window.add(options);
+
+    Panel game_modes = new Panel();
+    game_modes.setLayout(new FlowLayout());
+
+    Button reset_easy = new Button("Restart Easy");
+    reset_easy.setActionCommand("easy");
+    reset_easy.addActionListener(new ResetListener());
+    game_modes.add(reset_easy);
+
+    Button reset_medium = new Button("Restart Medium");
+    reset_medium.setActionCommand("medium");
+    reset_medium.addActionListener(new ResetListener());
+    game_modes.add(reset_medium);
+
+    Button reset_hard = new Button("Restart Hard");
+    reset_hard.setActionCommand("hard");
+    reset_hard.addActionListener(new ResetListener());
+    game_modes.add(reset_hard);
+
+    window.add(game_modes);
+
     for (int i = 0; i < rows; i++){
       window.add(grid[i]);
     }
@@ -126,6 +148,31 @@ public class Main{
     }
   }
 
+  private class ResetListener implements ActionListener{
+    public void actionPerformed(ActionEvent e){
+      String code = e.getActionCommand();
+      if (code == "easy"){
+        rows = 5;
+        cols = 5;
+        mines = 4;
+      } else if (code == "medium"){
+        rows = 10;
+        cols = 10;
+        mines = 15;
+      } else {
+        rows = 15;
+        cols = 15;
+        mines = 55;
+      }
+
+      board = new Board(mines,rows,cols);
+      window.setVisible(false);
+      prepareGUI();
+      fillGrid();
+
+    }
+  }
+
 }
 
 class Board {
@@ -136,6 +183,8 @@ class Board {
   String[][] pub_grid;
   Boolean[][] real_grid;
   boolean won = false;
+  boolean lost = false;
+
   public Board(int mines, int h, int w){
     //mine_count = mines;
     rows = h;
@@ -177,12 +226,17 @@ class Board {
   }
 
   public boolean takeGuess(String raw_guess){
+
+    if (lost) {return false;}
+
     String[] raw_guess_coords = raw_guess.split(",");
     int row = Integer.parseInt(raw_guess_coords[0]);
     int col = Integer.parseInt(raw_guess_coords[1]);
 
-    if (! (pub_grid[row][col] == " " || pub_grid[row][col] == "#")){
+    if (! (pub_grid[row][col] == " ")){
       return false;//this is in case you click a tile that is already guessed
+    } else if (pub_grid[row][col] == "#"){
+      return false;//this is in case you accidentally click a marked tile
     } else {
       tiles_guessed++;
       if (tiles_guessed == rows * cols - mine_count){
@@ -191,6 +245,7 @@ class Board {
     }
 
     if (real_grid[row][col]){
+      lost = true;
       pub_grid[row][col] = "@";
       for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
@@ -218,13 +273,16 @@ class Board {
   }
 
   public void takeMark(String raw_mark){
+
+    if (lost) {return;}
+
     String[] raw_mark_coords = raw_mark.split(",");
     int row = Integer.parseInt(raw_mark_coords[0]);
     int col = Integer.parseInt(raw_mark_coords[1]);
 
     if (pub_grid[row][col]=="#"){
       pub_grid[row][col] = " ";
-    } else {
+    } else if (pub_grid[row][col] == " "){
       pub_grid[row][col] = "#";
     }
 
