@@ -12,7 +12,7 @@ public class Main{
 
   private Frame window;
   private Label header;
-  private Panel[] grid = new Panel[rows];
+  private Panel[] grid = new Panel[20];
   private Button[][] button_array;
 
   boolean mode = true;
@@ -28,7 +28,11 @@ public class Main{
 
   private void prepareGUI(){
     window = new Frame("Minesweeper");
-    window.setSize(500,650);
+    if(cols >= 8){
+      window.setSize(50*cols,50*rows+150);
+    } else {
+      window.setSize(400,50*rows+150);
+    }
     window.setLayout(new GridLayout(rows+3,cols));
     window.addWindowListener(new WindowAdapter(){
       public void windowClosing(WindowEvent windowEvent){
